@@ -4,6 +4,8 @@ let score = 0;
 let timer = 30;
 let lastPop = 0;
 let gameOver = false;
+let gameStarted = false;
+let startTime = 0;
 
 function setup() {
   createCanvas(600, 400);
@@ -18,6 +20,12 @@ function setup() {
       moles.push({ x: x, y: y, isUp: false, popTime: 0 });
     }
   }
+  
+  // Initialize start time after a 1-second delay
+  setTimeout(() => {
+    gameStarted = true;
+    startTime = millis();
+  }, 1000);
 }
 
 function draw() {
@@ -29,11 +37,11 @@ function draw() {
   text('Score: ' + score, 10, 30);
   text('Time: ' + ceil(timer), 10, 60);
   
-  // Update timer using deltaTime
-  if (!gameOver) {
-    timer -= deltaTime / 1000; // Decrease timer by seconds elapsed
+  // Update timer using millis() once game has started
+  if (gameStarted && !gameOver) {
+    timer = 30 - (millis() - startTime) / 1000; // Calculate remaining time
     if (timer <= 0) {
-      timer = 0; // Prevent negative timer
+      timer = 0;
       gameOver = true;
     }
   }
@@ -76,27 +84,4 @@ function draw() {
     textSize(32);
     textAlign(CENTER);
     fill(255, 0, 0);
-    text('Game Over! Score: ' + score, width / 2, height / 2);
-  }
-}
-
-function popMole() {
-  // Find moles that are down
-  let downMoles = moles.filter(mole => !mole.isUp);
-  if (downMoles.length > 0) {
-    let randomMole = random(downMoles);
-    randomMole.isUp = true;
-    randomMole.popTime = millis();
-  }
-}
-
-function mousePressed() {
-  if (!gameOver) {
-    for (let mole of moles) {
-      if (mole.isUp && dist(mouseX, mouseY, mole.x, mole.y - 20) < 20) {
-        mole.isUp = false;
-        score += 1;
-      }
-    }
-  }
-}
+    text('Game Over! Score: ' + score
