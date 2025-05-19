@@ -5,7 +5,7 @@ let timer = 30;
 let lastPop = 0;
 let gameOver = false;
 let gameStarted = false;
-let frameCountStart = 0;
+let startTime = 0;
 
 function setup() {
   createCanvas(600, 400);
@@ -25,19 +25,13 @@ function setup() {
 function draw() {
   background(220);
   
-  // Wait for 10 frames before starting the game to ensure initialization
-  if (!gameStarted && frameCount < 10) {
+  // Show start screen until game starts
+  if (!gameStarted) {
     textSize(24);
     textAlign(CENTER);
-    text('Loading...', width / 2, height / 2);
-    return;
-  }
-  
-  // Start the game after 10 frames
-  if (!gameStarted) {
-    gameStarted = true;
-    frameCountStart = frameCount;
-    console.log('Game started at frame:', frameCount);
+    fill(0);
+    text('Click to Start', width / 2, height / 2);
+    return; // Skip all game logic
   }
   
   // Display timer and score
@@ -46,10 +40,10 @@ function draw() {
   text('Score: ' + score, 10, 30);
   text('Time: ' + ceil(timer), 10, 60);
   
-  // Update timer only if game is started and not over
-  if (gameStarted && !gameOver) {
-    timer -= deltaTime / 1000; // Decrease timer by seconds elapsed
-    console.log('Timer:', timer, 'DeltaTime:', deltaTime); // Debug log
+  // Update timer
+  if (!gameOver) {
+    timer = 30 - (millis() - startTime) / 1000; // Calculate remaining time
+    console.log('Timer:', timer, 'GameOver:', gameOver); // Debug log
     if (timer <= 0) {
       timer = 0;
       gameOver = true;
@@ -65,19 +59,14 @@ function draw() {
   
   // Draw holes and moles
   for (let i = 0; i < holes.length; i++) {
-    // Draw hole
     fill(0);
     ellipse(holes[i].x, holes[i].y, 50, 30);
-    
-    // Draw mole if up
     if (moles[i].isUp) {
       fill(139, 69, 19);
       ellipse(moles[i].x, moles[i].y - 20, 40, 40);
       fill(0);
       ellipse(moles[i].x - 10, moles[i].y - 25, 5, 5);
       ellipse(moles[i].x + 10, moles[i].y - 25, 5, 5);
-      
-      // Check if mole's time is up
       if (millis() - moles[i].popTime > 800) {
         moles[i].isUp = false;
       }
@@ -100,7 +89,6 @@ function draw() {
 }
 
 function popMole() {
-  // Find moles that are down
   let downMoles = moles.filter(mole => !mole.isUp);
   if (downMoles.length > 0) {
     let randomMole = random(downMoles);
@@ -110,6 +98,18 @@ function popMole() {
 }
 
 function mousePressed() {
+  if (!gameStarted) {
+    // Start the game
+    gameStarted = true;
+    startTime = millis();
+    timer = 30;
+    score = 0;
+    gameOver = false;
+    lastPop = 0;
+    console.log('Game started');
+    return;
+  }
+  
   if (!gameOver) {
     for (let mole of moles) {
       if (mole.isUp && dist(mouseX, mouseY, mole.x, mole.y - 20) < 20) {
