@@ -29,10 +29,11 @@ function draw() {
   text('Score: ' + score, 10, 30);
   text('Time: ' + ceil(timer), 10, 60);
   
-  // Update timer
+  // Update timer using deltaTime
   if (!gameOver) {
-    timer -= 1 / frameRate();
+    timer -= deltaTime / 1000; // Decrease timer by seconds elapsed
     if (timer <= 0) {
+      timer = 0; // Prevent negative timer
       gameOver = true;
     }
   }
