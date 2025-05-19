@@ -5,7 +5,7 @@ let timer = 30;
 let lastPop = 0;
 let gameOver = false;
 let gameStarted = false;
-let startTime = 0;
+let frameCountStart = 0;
 
 function setup() {
   createCanvas(600, 400);
@@ -20,16 +20,25 @@ function setup() {
       moles.push({ x: x, y: y, isUp: false, popTime: 0 });
     }
   }
-  
-  // Initialize start time after a 1-second delay
-  setTimeout(() => {
-    gameStarted = true;
-    startTime = millis();
-  }, 1000);
 }
 
 function draw() {
   background(220);
+  
+  // Wait for 10 frames before starting the game to ensure initialization
+  if (!gameStarted && frameCount < 10) {
+    textSize(24);
+    textAlign(CENTER);
+    text('Loading...', width / 2, height / 2);
+    return;
+  }
+  
+  // Start the game after 10 frames
+  if (!gameStarted) {
+    gameStarted = true;
+    frameCountStart = frameCount;
+    console.log('Game started at frame:', frameCount);
+  }
   
   // Display timer and score
   textSize(20);
@@ -37,12 +46,14 @@ function draw() {
   text('Score: ' + score, 10, 30);
   text('Time: ' + ceil(timer), 10, 60);
   
-  // Update timer using millis() once game has started
+  // Update timer only if game is started and not over
   if (gameStarted && !gameOver) {
-    timer = 30 - (millis() - startTime) / 1000; // Calculate remaining time
+    timer -= deltaTime / 1000; // Decrease timer by seconds elapsed
+    console.log('Timer:', timer, 'DeltaTime:', deltaTime); // Debug log
     if (timer <= 0) {
       timer = 0;
       gameOver = true;
+      console.log('Game over triggered');
     }
   }
   
@@ -84,4 +95,27 @@ function draw() {
     textSize(32);
     textAlign(CENTER);
     fill(255, 0, 0);
-    text('Game Over! Score: ' + score
+    text('Game Over! Score: ' + score, width / 2, height / 2);
+  }
+}
+
+function popMole() {
+  // Find moles that are down
+  let downMoles = moles.filter(mole => !mole.isUp);
+  if (downMoles.length > 0) {
+    let randomMole = random(downMoles);
+    randomMole.isUp = true;
+    randomMole.popTime = millis();
+  }
+}
+
+function mousePressed() {
+  if (!gameOver) {
+    for (let mole of moles) {
+      if (mole.isUp && dist(mouseX, mouseY, mole.x, mole.y - 20) < 20) {
+        mole.isUp = false;
+        score += 1;
+      }
+    }
+  }
+}
